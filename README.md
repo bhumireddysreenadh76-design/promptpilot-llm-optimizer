@@ -20,9 +20,9 @@ By intercepting messy, wordy prompts and rewriting them into concise, clear vers
 
 ## 🎥 Demo Media
 ![Workflow Diagram](Media/Work-flow)
-![Prompt Comparison](Media/Prompt Comparison)
+![Prompt Comparison](Media/Prompt-Comparison)
 
-🎥 [Watch Demo Video](Media/Demo video)
+🎥 [Watch Demo Video](Media/Demo-Video)
 
 
 ## 👤 Author
