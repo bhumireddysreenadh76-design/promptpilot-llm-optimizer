@@ -17,3 +17,18 @@ By intercepting messy, wordy prompts and rewriting them into concise, clear vers
 - Azure connectors (enterprise workflows)
 
 ## 📂 Repository Structure
+
+## 🎥 Demo Media
+- Side‑by‑side comparison: messy vs optimized prompt
+- Workflow diagram: User → PromptPilot Bot → Optimized Prompt → LLM → Accurate Response
+- 60‑second explainer video: Problem → Solution → Impact
+
+## 👤 Author
+- BHUMIREDDY SREENADH REDDY
+
+## 🔗 Links
+- [LinkedIn](https://www.linkedin.com/in/sreenadh-reddy-bhumireddy-621025195)
+- [GitHub](https://github.com/bhumireddysreenadh76-design/promptpilot-llm-optimizer)
+
+## 📜 License
+MIT License
