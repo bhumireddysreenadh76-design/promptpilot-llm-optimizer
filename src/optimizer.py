@@ -1,14 +1,17 @@
 import re
-from typing import List
+from typing import List, Dict
 
-# Filler words and short phrases to remove
+# Config
+MAX_WORDS = 30
+
+# Filler words (lowercase)
 FILLER_WORDS = {
     "please", "kindly", "actually", "basically", "just", "really", "very",
-    "if you don’t mind", "if you don't mind", "kind of", "sort of", "i mean",
-    "to be honest", "honestly", "frankly"
+    "if you don't mind", "if you don’t mind", "kind of", "sort of", "i mean",
+    "to be honest", "honestly", "frankly", "please,", "please."
 }
 
-# Phrase replacements (verbose -> concise)
+# Phrase replacements (regex patterns -> replacement)
 REPLACEMENTS = {
     r"\bin order to\b": "to",
     r"\bas soon as possible\b": "quickly",
@@ -23,89 +26,37 @@ REPLACEMENTS = {
     r"\bvery important\b": "critical",
     r"\bfor the purpose of\b": "for",
     r"\bwith regard to\b": "about",
-    r"\bthe reason why\b": "why"
+    r"\bthe reason why\b": "why",
+    r"\bservice continuity\b": "uptime"
 }
 
-# Verb mapping to canonical imperative verbs
+# Canonical verb mapping (pattern -> canonical verb)
 VERB_MAP = {
-    r"\bwrite (a )?summary\b": "Summarize",
+    r"\b(write|create|generate)\b.*\bpython\b.*\bhello\s*world\b": "Write Python code to print Hello World",
+    r"\b(print|print out|display)\b.*\bhello\s*world\b": "Print Hello World",
+    r"\b(write|create|generate)\b.*\bpython\b": "Write Python code",
+    r"\b(write|create|generate)\b.*\bcode\b": "Write code",
+    r"\b(write|create)\b.*\bsummary\b": "Summarize",
     r"\bsummarize\b": "Summarize",
     r"\bexplain\b": "Explain",
     r"\bdescribe\b": "Describe",
     r"\blist\b": "List",
     r"\bcompare\b": "Compare",
     r"\bdefine\b": "Define",
-    r"\bprovide\b": "Provide",
-    r"\bcreate\b": "Create",
     r"\bdraft\b": "Draft"
 }
 
-MAX_WORDS = 25  # configurable token/word limit
-
-
 def _normalize(text: str) -> str:
-    text = text or ""
-    text = text.strip()
-    # normalize unicode apostrophes to ascii
+    if not text:
+        return ""
     text = text.replace("’", "'")
-    # collapse whitespace
+    text = text.strip()
     text = re.sub(r"\s+", " ", text)
     return text
 
-
-def _remove_filler_words(text: str) -> str:
-    # Remove filler words as whole words (case-insensitive)
-    pattern = r"\b(" + "|".join(re.escape(w) for w in FILLER_WORDS) + r")\b"
-    return re.sub(pattern, "", text, flags=re.IGNORECASE)
-
-
-def _apply_replacements(text: str) -> str:
-    for long_pat, short in REPLACEMENTS.items():
-        text = re.sub(long_pat, short, text, flags=re.IGNORECASE)
-    return text
-
-
-def _force_imperative(text: str) -> str:
-    """
-    Convert polite/question forms into an imperative where possible.
-    Examples:
-      - "Could you explain X" -> "Explain X"
-      - "Can you please summarize Y" -> "Summarize Y"
-      - "I want a summary of Z" -> "Summarize Z"
-    """
-    # common polite patterns
-    text = re.sub(r"^(could|can|would)\s+you\s+(please\s+)?", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"^please\s+(could|can|would)\s+you\s+", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"^i\s+want\s+(you\s+to\s+)?", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"^i\s+need\s+(you\s+to\s+)?", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"^please\s+", "", text, flags=re.IGNORECASE)
-    return text
-
-
-def _map_to_canonical_verb(text: str) -> str:
-    """
-    If the prompt contains a known verb phrase, rewrite the start to a canonical verb.
-    Example: "please write a summary of AI" -> "Summarize AI"
-    """
-    lowered = text.lower()
-    for pat, verb in VERB_MAP.items():
-        if re.search(pat, lowered):
-            # remove the matched verb phrase from text and prepend canonical verb
-            new_text = re.sub(pat, "", text, flags=re.IGNORECASE).strip()
-            # remove leading punctuation or 'of' connectors
-            new_text = re.sub(r"^(of|about|the)\s+", "", new_text, flags=re.IGNORECASE)
-            if new_text:
-                return f"{verb} {new_text}"
-            return verb
-    return text
-
-
 def _clean_punctuation(text: str) -> str:
-    # Remove excessive punctuation but keep commas for lists and hyphens in words
     text = re.sub(r"[“”\"`]", "", text)
-    # replace multiple punctuation with single space
     text = re.sub(r"[!?;:]+", ".", text)
-    # remove stray parentheses but keep content
     text = re.sub(r"[\(\)
 
 \[\]
@@ -113,39 +64,88 @@ def _clean_punctuation(text: str) -> str:
 ]", "", text)
     return text
 
+def _remove_filler_words(text: str) -> str:
+    # Remove filler words as whole words (case-insensitive)
+    pattern = r"\b(" + "|".join(re.escape(w) for w in FILLER_WORDS) + r")\b"
+    return re.sub(pattern, "", text, flags=re.IGNORECASE)
+
+def _apply_replacements(text: str) -> str:
+    for pat, repl in REPLACEMENTS.items():
+        text = re.sub(pat, repl, text, flags=re.IGNORECASE)
+    return text
+
+def _force_imperative(text: str) -> str:
+    # Remove polite/question prefixes
+    text = re.sub(r"^(could|can|would)\s+you\s+(please\s+)?", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^please\s+(could|can|would)\s+you\s+", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^please\s+", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^i\s+(want|need)\s+(you\s+to\s+)?", "", text, flags=re.IGNORECASE)
+    return text.strip()
+
+def _map_to_canonical(text: str) -> str:
+    lowered = text.lower()
+    for pat, verb in VERB_MAP.items():
+        if re.search(pat, lowered):
+            # If mapping is a full canonical sentence, return it directly
+            if verb.endswith("Hello World") or verb.startswith("Write Python code to"):
+                return verb
+            # Otherwise, remove matched verb phrase and prepend canonical verb
+            new_text = re.sub(pat, "", text, flags=re.IGNORECASE).strip()
+            new_text = re.sub(r"^(of|about|the)\s+", "", new_text, flags=re.IGNORECASE)
+            if new_text:
+                return f"{verb} {new_text}"
+            return verb
+    return text
+
+def _trim_words(text: str, max_words: int = MAX_WORDS) -> str:
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    return " ".join(words[:max_words])
+
+def _final_cleanup(text: str) -> str:
+    text = re.sub(r"\s+", " ", text).strip()
+    # Remove leading/trailing punctuation
+    text = text.strip(" .,-")
+    if text:
+        text = text[0].upper() + text[1:]
+    return text
 
 def optimize_prompt(prompt: str) -> str:
     """
-    Main entry: returns a concise, imperative, token-efficient prompt string.
-    Steps:
-      1. Normalize whitespace and punctuation
-      2. Remove filler words
-      3. Apply dictionary replacements
-      4. Force imperative style
-      5. Map to canonical verb when possible
-      6. Trim to MAX_WORDS and capitalize first word
+    Single best optimized prompt (concise, imperative).
     """
-    if not prompt or not isinstance(prompt, str):
-        return ""
-
     text = _normalize(prompt)
     text = _clean_punctuation(text)
     text = _remove_filler_words(text)
     text = _apply_replacements(text)
     text = _force_imperative(text)
-    text = _map_to_canonical_verb(text)
-
-    # collapse extra spaces again
-    text = re.sub(r"\s+", " ", text).strip()
-
-    # Trim to MAX_WORDS
-    words: List[str] = text.split()
-    if len(words) > MAX_WORDS:
-        words = words[:MAX_WORDS]
-        text = " ".join(words)
-
-    # Capitalize first word (imperative style)
-    if text:
-        text = text[0].upper() + text[1:]
-
+    text = _map_to_canonical(text)
+    text = _apply_replacements(text)  # apply again after mapping
+    text = _trim_words(text)
+    text = _final_cleanup(text)
     return text
+
+def optimize_suggestions(prompt: str) -> List[Dict[str,str]]:
+    """
+    Return multiple suggestion styles: short, balanced, formal.
+    """
+    base = optimize_prompt(prompt)
+    # Short: keep first 6 words
+    short = " ".join(base.split()[:6])
+    # Balanced: base
+    balanced = base
+    # Formal: expand some contractions and keep slightly longer (up to 40 words)
+    formal = _normalize(prompt)
+    formal = _clean_punctuation(formal)
+    formal = _remove_filler_words(formal)
+    formal = _apply_replacements(formal)
+    formal = _force_imperative(formal)
+    formal = _map_to_canonical(formal)
+    formal = _trim_words(formal, max_words=40)
+    formal = _final_cleanup(formal)
+    return [
+        {"style": "short", "text": short},
+        {"style": "balanced", "text": balanced},
+        {"style": "formal", "text": formal}
+    ]
