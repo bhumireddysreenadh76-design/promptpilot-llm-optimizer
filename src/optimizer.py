@@ -53,11 +53,7 @@ def _normalize(text: str) -> str:
 def _clean_punctuation(text: str) -> str:
     text = re.sub(r"[“”\"`]", "", text)
     text = re.sub(r"[!?;:]+", ".", text)
-    text = re.sub(r"[\(\)
-
-\[\]
-
-]", "", text)
+    text = re.sub(r"[\(\)\[\]]", "", text)
     return text
 
 def _remove_filler_words(text: str) -> str:
@@ -131,3 +127,28 @@ def optimize_suggestions(prompt: str):
         {"style": "balanced", "text": balanced},
         {"style": "formal", "text": formal}
     ]
+    from spellchecker import SpellChecker
+spell = SpellChecker()
+
+def _correct_spelling(text: str) -> str:
+    words = text.split()
+    corrected = []
+    for word in words:
+        if word.lower() in spell:  # known word
+            corrected.append(word)
+        else:
+            corrected.append(spell.correction(word) or word)
+    return " ".join(corrected)
+def optimize_prompt(prompt: str) -> str:
+    text = _normalize(prompt)
+    text = _correct_spelling(text)   # NEW STEP
+    text = _clean_punctuation(text)
+    text = _remove_filler_words(text)
+    text = _apply_replacements(text)
+    text = _force_imperative(text)
+    text = _map_to_canonical(text)
+    text = _apply_replacements(text)
+    text = _trim_words(text)
+    text = _final_cleanup(text)
+    return text
+
