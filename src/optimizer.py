@@ -1,5 +1,5 @@
 import re
-from pyspellchecker import SpellChecker
+from spellchecker import SpellChecker
 from typing import List, Dict
 
 MAX_WORDS = 30
