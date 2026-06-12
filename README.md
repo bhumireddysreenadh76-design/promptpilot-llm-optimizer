@@ -19,9 +19,11 @@ By intercepting messy, wordy prompts and rewriting them into concise, clear vers
 ## 📂 Repository Structure
 
 ## 🎥 Demo Media
-- Side‑by‑side comparison: messy vs optimized prompt
-- Workflow diagram: User → PromptPilot Bot → Optimized Prompt → LLM → Accurate Response
-- 60‑second explainer video: Problem → Solution → Impact
+![Workflow Diagram](Media/Work-flow)
+![Prompt Comparison](Media/Prompt Comparison)
+
+🎥 [Watch Demo Video](Media/Demo video)
+
 
 ## 👤 Author
 - BHUMIREDDY SREENADH REDDY
