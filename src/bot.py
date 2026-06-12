@@ -1,16 +1,13 @@
-from flask import Flask, request, jsonify
+from fastapi import FastAPI
+from pydantic import BaseModel
+from src.optimizer import optimize_prompt
 
-app = Flask(__name__)
+app = FastAPI()
 
-def optimize_prompt(prompt: str) -> str:
-    # Basic optimization logic (placeholder)
-    return "Optimized: " + prompt.strip()
+class PromptRequest(BaseModel):
+    prompt: str
 
-@app.route("/optimize", methods=["POST"])
-def optimize():
-    data = request.json
-    prompt = data.get("prompt", "")
-    return jsonify({"optimized_prompt": optimize_prompt(prompt)})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.post("/optimize")
+async def optimize(request: PromptRequest):
+    optimized = optimize_prompt(request.prompt)
+    return {"optimized_prompt": optimized}
