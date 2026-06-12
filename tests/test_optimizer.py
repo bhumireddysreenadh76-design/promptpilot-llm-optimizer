@@ -10,3 +10,8 @@ class TestOptimizer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+def test_phrase_shortening(self):
+    self.assertEqual(
+        optimize_prompt("Please kindly write a very detailed summary in order to explain AI in education as soon as possible."),
+        "write detailed summary to explain AI in education quickly"
+    )
