@@ -1,4 +1,5 @@
 import re
+import spellChecker
 from typing import List, Dict
 
 MAX_WORDS = 30
@@ -127,7 +128,7 @@ def optimize_suggestions(prompt: str):
         {"style": "balanced", "text": balanced},
         {"style": "formal", "text": formal}
     ]
-    from spellchecker import SpellChecker
+    
 spell = SpellChecker()
 
 def _correct_spelling(text: str) -> str:
