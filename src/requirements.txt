@@ -1,0 +1,5 @@
+flask
+fastapi
+openai
+azure-ai
+requests
