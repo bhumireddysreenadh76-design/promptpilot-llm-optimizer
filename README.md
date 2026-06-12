@@ -22,7 +22,7 @@ By intercepting messy, wordy prompts and rewriting them into concise, clear vers
 ![Workflow Diagram](Media/Work-flow)
 ![Prompt Comparison](Media/Prompt-Comparison)
 
-🎥 [Watch Demo Video](Media/Demo-Video)
+🎥 [Watch Demo Video](Media/Demo-Video.mp4)
 
 
 ## 👤 Author
