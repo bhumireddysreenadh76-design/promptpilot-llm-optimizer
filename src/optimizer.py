@@ -34,3 +34,45 @@ def optimize_prompt(prompt: str) -> str:
     limited = " ".join(cleaned.split()[:30])
 
     return limited
+
+import re
+
+def optimize_prompt(prompt: str) -> str:
+    """
+    Rephrases a user prompt into a short, clear, token-efficient version.
+    - Removes filler words
+    - Shortens verbose phrases
+    - Rewrites into direct, simple language
+    """
+
+    # Step 1: Normalize whitespace
+    prompt = prompt.strip()
+    prompt = re.sub(r"\s+", " ", prompt)
+
+    # Step 2: Remove filler words
+    filler_words = ["please", "kindly", "actually", "basically", "just", "really", "very", "if you don’t mind"]
+    words = [w for w in prompt.split() if w.lower() not in filler_words]
+    cleaned = " ".join(words)
+
+    # Step 3: Replace verbose phrases with concise ones
+    replacements = {
+        "in order to": "to",
+        "as soon as possible": "quickly",
+        "a large number of": "many",
+        "due to the fact that": "because",
+        "provide me with": "give",
+        "could you": "explain",
+        "help me understand": "explain"
+    }
+    for long, short in replacements.items():
+        cleaned = cleaned.replace(long, short)
+
+    # Step 4: Rephrase into imperative style (remove politeness, keep action)
+    # Example: "Could you explain importance of incident management" → "Explain importance of incident management"
+    cleaned = re.sub(r"^(could|can|would)\s+you\s+", "Explain ", cleaned, flags=re.IGNORECASE)
+
+    # Step 5: Limit to ~25 words
+    limited = " ".join(cleaned.split()[:25])
+
+    return limited
+
